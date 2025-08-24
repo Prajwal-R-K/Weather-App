@@ -2,9 +2,18 @@
 
 Weather+ Pro is a modern, installable PWA weather application built with React, TypeScript, Tailwind, and Vite. It supports multiple providers (Open‑Meteo by default; optional OpenWeatherMap with a user-supplied key), smart caching, offline mode, charts, and map selection. CI/CD is set up to deploy to GitHub Pages.
 
-![Build](https://img.shields.io/github/actions/workflow/status/OWNER/REPO/deploy.yml?branch=main&label=build)
+[![Build](https://img.shields.io/github/actions/workflow/status/Prajwal-R-K/Weather-App/deploy.yml?branch=main&label=build)](https://github.com/Prajwal-R-K/Weather-App/actions)
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
-![Pages](https://img.shields.io/badge/Pages-gh--pages-success)
+[![Live Demo](https://img.shields.io/badge/GitHub%20Pages-Live%20Site-success)](https://prajwal-r-k.github.io/Weather-App/)
+
+## Live Demo
+
+- Live: https://prajwal-r-k.github.io/Weather-App/
+
+## Quick Links
+
+- Issues: https://github.com/Prajwal-R-K/Weather-App/issues
+- Actions: https://github.com/Prajwal-R-K/Weather-App/actions
 
 ## Features
 
@@ -61,6 +70,8 @@ pnpm dev
 ```
 
 Open http://localhost:5173. Try `/city/Bengaluru`.
+
+Public deployment is available at: https://prajwal-r-k.github.io/Weather-App/
 
 ## Build & PWA
 
