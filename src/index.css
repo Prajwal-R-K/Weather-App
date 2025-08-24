@@ -1,0 +1,123 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root{
+  --background: 222 47% 6%;
+  --foreground: 210 40% 98%;
+  --card: 222 47% 8%;
+  --card-foreground: 210 40% 98%;
+  --primary: 199 89% 48%;
+  --primary-foreground: 210 40% 98%;
+  --muted: 217 32% 17%;
+  --accent: 199 89% 30%;
+
+  /* Gradient tokens (default = night-ish) */
+  --g1: rgba(56,189,248,0.10);
+  --g2: rgba(99,102,241,0.12);
+  --g3: rgba(14,165,233,0.08);
+}
+
+.light{
+  --background: 0 0% 100%;
+  --foreground: 222 47% 6%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 6%;
+  --primary: 199 89% 48%;
+  --primary-foreground: 210 40% 98%;
+  --muted: 210 40% 96%;
+  --accent: 199 89% 40%;
+}
+
+html, body, #root{ height:100%; }
+body{ font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+
+/* Animated weather background using phase variables */
+.bg-gradient-weather{
+  background:
+    radial-gradient(1200px 600px at 80% -10%, var(--g1), transparent),
+    radial-gradient(800px 400px at -10% 10%, var(--g2), transparent),
+    radial-gradient(1000px 800px at 50% 120%, var(--g3), transparent);
+  background-size: 120% 120%;
+  animation: bg-pan 18s ease-in-out infinite alternate;
+}
+
+@keyframes bg-pan {
+  0% { background-position: 0% 0%, 0% 0%, 0% 0%; }
+  50% { background-position: 20% -10%, -10% 10%, 0% 20%; }
+  100% { background-position: -10% 10%, 10% -10%, 0% -10%; }
+}
+
+/* Phase palettes */
+.phase-night{ --g1: rgba(56,189,248,0.10); --g2: rgba(99,102,241,0.14); --g3: rgba(14,165,233,0.08); }
+.phase-dawn{ --g1: rgba(251,191,36,0.25); --g2: rgba(244,114,182,0.14); --g3: rgba(56,189,248,0.10); }
+.phase-day{ --g1: rgba(56,189,248,0.20); --g2: rgba(34,197,94,0.10); --g3: rgba(147,197,253,0.14); }
+.phase-dusk{ --g1: rgba(249,115,22,0.22); --g2: rgba(99,102,241,0.16); --g3: rgba(244,63,94,0.12); }
+
+/* Weather overlays */
+.weather-overlay{ position: fixed; inset: 0; z-index: 0; }
+
+/* Rain: diagonal streaks falling */
+.weather-rain .weather-overlay{
+  opacity: 0.22;
+  background-image:
+    repeating-linear-gradient(120deg, rgba(255,255,255,0.0) 0 10px, rgba(255,255,255,0.25) 10px 12px, rgba(255,255,255,0.0) 12px 22px);
+  background-size: 200% 200%;
+  animation: rain-fall 0.9s linear infinite;
+}
+@keyframes rain-fall{
+  0% { background-position: 0% 0%; }
+  100% { background-position: -20% 40%; }
+}
+
+/* Snow: soft dots drifting */
+.weather-snow .weather-overlay{
+  opacity: 0.20;
+  background-image:
+    radial-gradient(2px 2px at 20% 20%, rgba(255,255,255,0.9) 50%, transparent 51%),
+    radial-gradient(2px 2px at 60% 10%, rgba(255,255,255,0.8) 50%, transparent 51%),
+    radial-gradient(3px 3px at 80% 30%, rgba(255,255,255,0.85) 50%, transparent 51%),
+    radial-gradient(2px 2px at 40% 50%, rgba(255,255,255,0.8) 50%, transparent 51%),
+    radial-gradient(3px 3px at 10% 70%, rgba(255,255,255,0.85) 50%, transparent 51%),
+    radial-gradient(2px 2px at 70% 80%, rgba(255,255,255,0.8) 50%, transparent 51%);
+  background-size: 100% 100%;
+  animation: snow-drift 6s linear infinite;
+}
+@keyframes snow-drift{
+  0% { transform: translateY(-5%); }
+  50% { transform: translateY(5%) translateX(-1%); }
+  100% { transform: translateY(15%) translateX(1%); }
+}
+
+/* Clouds: parallax layered noise; opacity driven by --clouds-opacity */
+.clouds-overlay{ position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: var(--clouds-opacity, 0); mix-blend-mode: lighten; }
+.clouds-overlay{
+  background-image:
+    radial-gradient(closest-side, rgba(255,255,255,0.12), rgba(255,255,255,0.0) 60%),
+    radial-gradient(closest-side, rgba(255,255,255,0.10), rgba(255,255,255,0.0) 60%),
+    radial-gradient(closest-side, rgba(255,255,255,0.08), rgba(255,255,255,0.0) 60%);
+  background-size: 40% 40%, 60% 60%, 80% 80%;
+  background-position: 0% 0%, 20% 10%, 40% 30%;
+  animation: clouds-move-1 60s linear infinite, clouds-move-2 80s linear infinite reverse;
+}
+@keyframes clouds-move-1{ 0%{ background-position: 0% 0%, 20% 10%, 40% 30% } 100%{ background-position: 20% -10%, 0% 0%, 30% 10% } }
+@keyframes clouds-move-2{ 0%{ background-position: 0% 0%, 20% 10%, 40% 30% } 100%{ background-position: -10% 10%, 10% -10%, 50% 0% } }
+
+/* Wind streaks: show only when root has weather-windy */
+.wind-overlay{ position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0; }
+.weather-windy .wind-overlay{ opacity: 0.18; background-image: repeating-linear-gradient(0deg, rgba(255,255,255,0.0) 0 12px, rgba(255,255,255,0.25) 12px 13px, rgba(255,255,255,0.0) 13px 28px); background-size: 200% 200%; animation: wind-flow 3s linear infinite; }
+@keyframes wind-flow{ 0%{ background-position: 0% 0% } 100%{ background-position: 60% -40% } }
+
+/* Lightning: flashes when thunder class is present */
+.lightning-overlay{ position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0 }
+.weather-thunder .lightning-overlay{ animation: lightning-flash 6s infinite; }
+@keyframes lightning-flash{
+  0%, 92%, 100% { opacity: 0 }
+  93% { opacity: 0.5; background: radial-gradient(closest-side, rgba(255,255,255,0.6), rgba(255,255,255,0) 60%) center/200% 200% no-repeat; }
+  94% { opacity: 0.15 }
+  95% { opacity: 0.45 }
+  96% { opacity: 0 }
+}
+
+/* Global reduced motion override */
+.no-anim *, .no-anim *::before, .no-anim *::after{ animation: none !important; transition: none !important }
