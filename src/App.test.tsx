@@ -12,6 +12,7 @@ describe('App', () => {
         </Routes>
       </MemoryRouter>
     )
-    expect(await screen.findByText(/Weather\+ Pro/i)).toBeInTheDocument()
+    // Assert the main page heading instead of generic text to avoid duplicates
+    expect(await screen.findByRole('heading', { level: 1, name: /Weather\+ Pro/i })).toBeInTheDocument()
   })
 })

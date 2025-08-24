@@ -34,3 +34,15 @@ if (typeof window !== 'undefined' && (window as any).HTMLDialogElement) {
   if (!proto.showModal) proto.showModal = function(){ this.open = true }
   if (!proto.close) proto.close = function(){ this.open = false }
 }
+
+// Polyfill ResizeObserver for libraries like recharts in jsdom
+if (typeof window !== 'undefined' && !(window as any).ResizeObserver) {
+  class ResizeObserverMock {
+    callback: ResizeObserverCallback
+    constructor(cb: ResizeObserverCallback){ this.callback = cb }
+    observe(){ /* no-op */ }
+    unobserve(){ /* no-op */ }
+    disconnect(){ /* no-op */ }
+  }
+  ;(window as any).ResizeObserver = ResizeObserverMock as any
+}
