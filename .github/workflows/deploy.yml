@@ -19,8 +19,6 @@ jobs:
 
       - name: Setup PNPM
         uses: pnpm/action-setup@v4
-        with:
-          version: 9
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -39,7 +37,7 @@ jobs:
 
       - name: Build
         env:
-          VITE_BASE: "/${https://github.com/Prajwal-R-K/Weather-App.git}/"
+          VITE_BASE: "/${{ github.event.repository.name }}/"
         run: pnpm build
 
       - name: Add 404.html for SPA routing
