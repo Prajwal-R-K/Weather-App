@@ -1,0 +1,1 @@
+{"name":"Weather+ Pro","short_name":"Weather+","start_url":".","display":"standalone","background_color":"#0b1220","lang":"en","scope":"/Weather-App/","description":"Advanced PWA Weather app","theme_color":"#0ea5e9","icons":[{"src":"icons/icon.svg","sizes":"any","type":"image/svg+xml"},{"src":"icons/maskable.svg","sizes":"any","type":"image/svg+xml","purpose":"maskable"}]}
