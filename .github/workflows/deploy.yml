@@ -39,7 +39,7 @@ jobs:
 
       - name: Build
         env:
-          VITE_BASE: "/${{ github.event.repository.name }}/"
+          VITE_BASE: "/${https://github.com/Prajwal-R-K/Weather-App.git}/"
         run: pnpm build
 
       - name: Add 404.html for SPA routing
