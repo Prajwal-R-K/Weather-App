@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Home from './pages/Home'
 import CityView from './pages/CityView'
 import LatLonView from './pages/LatLonView'
+import CompareView from './pages/CompareView'
 import { ThemeToggle } from './components/ThemeToggle'
 import { useSettings } from './state/settings'
 import { SettingsDialog } from './components/SettingsDialog'
@@ -25,7 +26,14 @@ export default function App(){
   useEffect(() => {
     const root = document.documentElement
     const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
-    root.classList.toggle('dark', isDark)
+    // Tailwind dark variants rely on 'dark' class; our CSS light tokens rely on 'light' class
+    if (isDark) {
+      root.classList.add('dark')
+      root.classList.remove('light')
+    } else {
+      root.classList.remove('dark')
+      root.classList.add('light')
+    }
     localStorage.setItem('theme', theme)
   }, [theme])
 
@@ -95,7 +103,7 @@ export default function App(){
   }
 
   return (
-    <div className="relative min-h-screen bg-background text-foreground bg-gradient-weather">
+    <div id="app-canvas" className="relative min-h-screen bg-background text-foreground bg-gradient-weather">
       <header className="sticky top-0 z-20 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-white/5">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 font-semibold">
@@ -115,6 +123,7 @@ export default function App(){
               {geoLoading ? 'Locating…' : 'Geolocate'}
             </button>
             <button id="open-settings" className="px-3 py-1.5 rounded-xl bg-primary text-white">Settings</button>
+            <Link to="/compare" className="text-sm text-primary">Compare</Link>
             <Link to="/city/Bengaluru" className="text-sm text-primary">Demo: Bengaluru</Link>
           </div>
         </div>
@@ -132,6 +141,7 @@ export default function App(){
               <Route path="/" element={<Home />} />
               <Route path="/city/:name" element={<CityView />} />
               <Route path="/lat/:lat/lon/:lon" element={<LatLonView />} />
+              <Route path="/compare" element={<CompareView />} />
             </Routes>
           </motion.div>
         </AnimatePresence>

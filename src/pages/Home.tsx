@@ -4,6 +4,7 @@ import { useCityWeather } from '../hooks/useWeather'
 import { HourlyTempChart } from '../components/HourlyTempChart'
 import { MiniMap } from '../components/MiniMap'
 import { geocodeSuggest, reverseGeocode, type GeoSuggest } from '../api/openMeteo'
+import { FavoritesBar } from '../components/FavoritesBar'
 
 export default function Home(){
   const [q, setQ] = useState('')
@@ -59,6 +60,7 @@ export default function Home(){
   const { data, loading, error } = useCityWeather(previewCity)
   return (
     <div className="space-y-8">
+      <FavoritesBar />
       <section className="grid grid-cols-1 md:grid-cols-12 gap-6">
         <div className="md:col-span-8 p-6 rounded-2xl bg-card shadow-soft">
           <h1 className="text-2xl font-semibold mb-2">Weather+ Pro</h1>

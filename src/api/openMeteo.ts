@@ -8,7 +8,7 @@ export async function reverseGeocode(lat: number, lon: number, signal?: AbortSig
   const key = `om-rev:${lat.toFixed(3)},${lon.toFixed(3)}`
   const cached = getCache<GeoSuggest>(key, 24 * 60 * 60 * 1000)
   if (cached) return cached
-  const geoBase = import.meta.env.DEV ? 'https://corsproxy.io/?https://geocoding-api.open-meteo.com' : 'https://geocoding-api.open-meteo.com'
+  const geoBase = import.meta.env.DEV ? '/om-geo' : 'https://geocoding-api.open-meteo.com'
   const url = `${geoBase}/v1/reverse?latitude=${lat}&longitude=${lon}&language=en&format=json`
   const data = await abortableJson<{ results?: any[] }>(url, { signal })
   const first = data.results?.[0]
@@ -54,7 +54,7 @@ export async function geocodeCity(name: string, signal?: AbortSignal): Promise<G
   const qCity = parts[0] || raw
   const qState = parts.length >= 2 ? parts[1] : undefined
   const qCountry = parts.length >= 3 ? parts[parts.length - 1] : undefined
-  const geoBase = import.meta.env.DEV ? 'https://corsproxy.io/?https://geocoding-api.open-meteo.com' : 'https://geocoding-api.open-meteo.com'
+  const geoBase = import.meta.env.DEV ? '/om-geo' : 'https://geocoding-api.open-meteo.com'
   const dataCity = await abortableJson<{ results?: any[] }>(
     `${geoBase}/v1/search?name=${encodeURIComponent(qCity)}&count=20&language=en&format=json`,
     { signal }
@@ -115,7 +115,8 @@ export async function geocodeSuggest(query: string, limit = 5, signal?: AbortSig
   const key = `om-geo-suggest:${q.toLowerCase()}:${limit}`
   const cached = getCache<GeoSuggest[]>(key, 12 * 60 * 60 * 1000)
   if (cached) return cached
-  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=${limit}&language=en&format=json`
+  const geoBase = import.meta.env.DEV ? '/om-geo' : 'https://geocoding-api.open-meteo.com'
+  const url = `${geoBase}/v1/search?name=${encodeURIComponent(q)}&count=${limit}&language=en&format=json`
   const data = await abortableJson<{ results?: any[] }>(url, { signal })
   const results: GeoSuggest[] = (data.results || []).map((r: any, i: number) => ({
     id: r.id ?? i,

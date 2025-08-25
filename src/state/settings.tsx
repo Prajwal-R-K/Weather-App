@@ -3,6 +3,10 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 export type Units = 'metric' | 'imperial'
 export type Provider = 'open-meteo' | 'openweather'
 
+export type Favorite =
+  | { type: 'city'; label: string }
+  | { type: 'coords'; label: string; lat: number; lon: number }
+
 export type Settings = {
   units: Units
   provider: Provider
@@ -10,6 +14,7 @@ export type Settings = {
   particles: boolean
   animations: boolean
   owmKey: string | null
+  favorites: Favorite[]
 }
 
 const DEFAULT_SETTINGS: Settings = {
@@ -19,6 +24,9 @@ const DEFAULT_SETTINGS: Settings = {
   particles: localStorage.getItem('particles') === 'true',
   animations: localStorage.getItem('animations') ? localStorage.getItem('animations') === 'true' : !(typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches),
   owmKey: localStorage.getItem('owmKey'),
+  favorites: (() => {
+    try { return JSON.parse(localStorage.getItem('favorites') || '[]') as Favorite[] } catch { return [] }
+  })(),
 }
 
 const SettingsCtx = createContext<{
@@ -37,6 +45,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }){
     localStorage.setItem('particles', String(settings.particles))
     localStorage.setItem('animations', String(settings.animations))
     if (settings.owmKey) localStorage.setItem('owmKey', settings.owmKey)
+    localStorage.setItem('favorites', JSON.stringify(settings.favorites || []))
   }, [settings])
 
   const value = useMemo(() => ({ settings, setSettings }), [settings])

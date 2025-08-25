@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import type { NormalizedWeather } from '../api/types'
 
-export function HourlyTempChart({ data }: { data: NormalizedWeather }){
+export function HourlyTempChart({ data, syncId }: { data: NormalizedWeather; syncId?: string }){
   const points = useMemo(() => {
     const today = data.daily?.[0]?.date ?? new Date().toISOString().slice(0,10)
     return data.hourly
@@ -15,7 +15,7 @@ export function HourlyTempChart({ data }: { data: NormalizedWeather }){
   return (
     <div className="rounded-2xl bg-card border border-white/5 p-3 h-40">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={points} margin={{ left: 8, right: 8, top: 8, bottom: 8 }}>
+        <AreaChart data={points} margin={{ left: 8, right: 8, top: 8, bottom: 8 }} syncId={syncId}>
           <defs>
             <linearGradient id="tempGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="rgb(56 189 248)" stopOpacity={0.4}/>

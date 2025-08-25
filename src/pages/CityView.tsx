@@ -1,5 +1,5 @@
-import { useEffect, useMemo } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useCityWeather } from '../hooks/useWeather'
 import { WeatherIcon } from '../components/WeatherIcon'
 import { CurrentCard } from '../components/CurrentCard'
@@ -12,11 +12,18 @@ import { CloudCoverCard } from '../components/CloudCoverCard'
 import { Sparkline } from '../components/Sparkline'
 import { applyPhaseClass, applyWeatherClass, getDayPhase } from '../lib/dayPhase'
 import { aqiColor, aqiLabel } from '../lib/aqi'
+import { AlertsBanner } from '../components/AlertsBanner'
+import { useSettings } from '../state/settings'
+import { exportElementPdf } from '../lib/exportPdf'
 
 export default function CityView(){
   const { name } = useParams()
   const city = decodeURIComponent(name || '')
   const { data, loading, error } = useCityWeather(city)
+  const { settings, setSettings } = useSettings()
+  const nav = useNavigate()
+  const [addedMsg, setAddedMsg] = useState<string>('')
+  const wrapRef = useRef<HTMLDivElement | null>(null)
   const today = data?.daily?.[0]?.date
   const pressureToday = useMemo(() => (data?.hourly || []).filter(h => h.time.slice(0,10) === today).map(h => Math.round(h.pressureHpa ?? 0)).filter(n => n>0), [data, today])
   const tempToday = useMemo(() => (data?.hourly || []).filter(h => h.time.slice(0,10) === today).map(h => Math.round(h.tempC)), [data, today])
@@ -49,7 +56,7 @@ export default function CityView(){
     else root.classList.remove('weather-windy')
   }, [data?.current?.windKph])
   return (
-    <div className="space-y-6">
+    <div ref={wrapRef} className="space-y-6">
       <h2 className="text-xl font-semibold flex items-center gap-2">
         <span className="inline-flex items-center gap-2">
           {data && <WeatherIcon name={data.current.icon} className="w-6 h-6 text-primary" />}
@@ -57,22 +64,73 @@ export default function CityView(){
         </span>
       </h2>
       <div className="flex items-center justify-between">
-        <div />
-        <Link to="/" className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-sm">Back to Home</Link>
+        <div className="text-sm text-green-400 h-5">{addedMsg}</div>
+        <div className="flex items-center gap-2">
+          <button
+            className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-sm"
+            onClick={() => {
+              const next = [...(settings.favorites || [])]
+              if (!next.some(f => f.type === 'city' && f.label === city)) {
+                next.unshift({ type: 'city', label: city })
+                setSettings({ favorites: next.slice(0, 20) })
+                setAddedMsg('Added to favorites')
+                setTimeout(() => setAddedMsg(''), 2000)
+              }
+            }}
+          >
+            Add to Favorites
+          </button>
+          <button
+            className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-sm"
+            onClick={() => {
+              try {
+                const payload = {
+                  type: 'city',
+                  city,
+                  units: settings.units,
+                  fetchedAt: new Date().toISOString(),
+                  data
+                }
+                const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+                const url = URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = url
+                a.download = `weather-${encodeURIComponent(city)}.json`
+                a.click()
+                URL.revokeObjectURL(url)
+              } catch {}
+            }}
+          >Export</button>
+          <button
+            className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-sm"
+            onClick={async () => {
+              const el = document.getElementById('print-area') as HTMLElement | null
+              if (!el) return
+              await exportElementPdf(el, `Weather_${city}`)
+            }}
+          >Download PDF</button>
+          <Link to="/" className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-sm">Back to Home</Link>
+        </div>
       </div>
 
       {loading && <p className="text-white/70">Loading...</p>}
       {error && <p className="text-red-300">{error}</p>}
 
       {data && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="sticky top-16 z-10">
+          <AlertsBanner lat={data.location.lat} lon={data.location.lon} />
+        </div>
+      )}
+
+      {data && (
+        <div id="print-area" className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <CurrentCard data={data} />
             <ForecastTabs data={data} />
             <HourlyTempChart data={data} />
           </div>
           <div className="space-y-6">
-            <MiniMap lat={data.location.lat} lon={data.location.lon} />
+            <MiniMap lat={data.location.lat} lon={data.location.lon} onPick={(la, lo) => nav(`/lat/${la.toFixed(4)}/lon/${lo.toFixed(4)}`)} />
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Gauge value={data.current.visibilityKm ?? 0} max={20} label="Visibility (km)" />

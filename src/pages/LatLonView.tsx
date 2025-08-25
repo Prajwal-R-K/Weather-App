@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { fetchWeather as fetchOM, reverseGeocode } from '../api/openMeteo'
 import type { GeoSuggest } from '../api/openMeteo'
 import type { NormalizedWeather } from '../api/types'
@@ -14,10 +14,12 @@ import { CloudCoverCard } from '../components/CloudCoverCard'
 import { Sparkline } from '../components/Sparkline'
 import { applyPhaseClass, applyWeatherClass, getDayPhase } from '../lib/dayPhase'
 import { aqiColor, aqiLabel } from '../lib/aqi'
+import { AlertsBanner } from '../components/AlertsBanner'
 
 export default function LatLonView(){
   const { lat, lon } = useParams()
-  const { settings } = useSettings()
+  const nav = useNavigate()
+  const { settings, setSettings } = useSettings()
   const coords = useMemo(() => {
     const la = Number(lat)
     const lo = Number(lon)
@@ -30,6 +32,7 @@ export default function LatLonView(){
   const [pretty, setPretty] = useState<string | null>(null)
   const [rgLoading, setRgLoading] = useState<boolean>(false)
   const [rev, setRev] = useState<GeoSuggest | null>(null)
+  const [addedMsg, setAddedMsg] = useState<string>('')
 
   useEffect(() => {
     let alive = true
@@ -117,8 +120,58 @@ export default function LatLonView(){
         </span>
       </h2>
       <div className="flex items-center justify-between">
-        <div />
-        <Link to="/" className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-sm">Back to Home</Link>
+        <div className="text-sm text-green-400 h-5">{addedMsg}</div>
+        <div className="flex items-center gap-2">
+          <button
+            className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-sm"
+            onClick={() => {
+              if (!coords) return
+              const label = pretty || `${coords.la.toFixed(4)}, ${coords.lo.toFixed(4)}`
+              const next = [...(settings.favorites || [])]
+              if (!next.some(f => f.type === 'coords' && f.lat === coords.la && f.lon === coords.lo)) {
+                next.unshift({ type: 'coords', label, lat: coords.la, lon: coords.lo })
+                setSettings({ favorites: next.slice(0, 20) })
+                setAddedMsg('Added to favorites')
+                setTimeout(() => setAddedMsg(''), 2000)
+              }
+            }}
+          >
+            Add to Favorites
+          </button>
+          <button
+            className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-sm"
+            onClick={() => {
+              try {
+                const payload = {
+                  type: 'coords',
+                  lat: coords.la,
+                  lon: coords.lo,
+                  label: pretty || `${coords.la.toFixed(4)}, ${coords.lo.toFixed(4)}`,
+                  units: settings.units,
+                  fetchedAt: new Date().toISOString(),
+                  data
+                }
+                const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+                const url = URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = url
+                a.download = `weather-${coords.la.toFixed(4)}_${coords.lo.toFixed(4)}.json`
+                a.click()
+                URL.revokeObjectURL(url)
+              } catch {}
+            }}
+          >Export</button>
+          <button
+            className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-sm"
+            onClick={async () => {
+              const el = document.getElementById('print-area') as HTMLElement | null
+              if (!el) return
+              const { exportElementPdf } = await import('../lib/exportPdf')
+              await exportElementPdf(el, `Weather_${coords.la.toFixed(4)}_${coords.lo.toFixed(4)}`)
+            }}
+          >Download PDF</button>
+          <Link to="/" className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-sm">Back to Home</Link>
+        </div>
       </div>
 
       {(rgLoading || pretty) && (
@@ -147,6 +200,12 @@ export default function LatLonView(){
       {loading && <p className="text-white/70">Loading...</p>}
       {error && <p className="text-red-300">{error}</p>}
 
+      {data && (
+        <div className="sticky top-16 z-10">
+          <AlertsBanner lat={data.location.lat} lon={data.location.lon} />
+        </div>
+      )}
+
       {/* Location details card */}
       {rev && (
         <div className="rounded-2xl p-4 bg-card border border-white/5">
@@ -165,14 +224,14 @@ export default function LatLonView(){
       )}
 
       {data && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div id="print-area" className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <CurrentCard data={data} />
             <ForecastTabs data={data} />
             <HourlyTempChart data={data} />
           </div>
           <div className="space-y-6">
-            <MiniMap lat={data.location.lat} lon={data.location.lon} />
+            <MiniMap lat={data.location.lat} lon={data.location.lon} onPick={(la, lo) => nav(`/lat/${la.toFixed(4)}/lon/${lo.toFixed(4)}`)} />
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Gauge value={data.current.visibilityKm ?? 0} max={20} label="Visibility (km)" />
