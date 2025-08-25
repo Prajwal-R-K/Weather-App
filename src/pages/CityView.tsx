@@ -15,11 +15,12 @@ import { aqiColor, aqiLabel } from '../lib/aqi'
 import { AlertsBanner } from '../components/AlertsBanner'
 import { useSettings } from '../state/settings'
 import { exportElementPdf } from '../lib/exportPdf'
+import { useNow, formatRelativeTime } from '../lib/time'
 
 export default function CityView(){
   const { name } = useParams()
   const city = decodeURIComponent(name || '')
-  const { data, loading, error } = useCityWeather(city)
+  const { data, loading, error, refresh } = useCityWeather(city)
   const { settings, setSettings } = useSettings()
   const nav = useNavigate()
   const [addedMsg, setAddedMsg] = useState<string>('')
@@ -27,6 +28,7 @@ export default function CityView(){
   const today = data?.daily?.[0]?.date
   const pressureToday = useMemo(() => (data?.hourly || []).filter(h => h.time.slice(0,10) === today).map(h => Math.round(h.pressureHpa ?? 0)).filter(n => n>0), [data, today])
   const tempToday = useMemo(() => (data?.hourly || []).filter(h => h.time.slice(0,10) === today).map(h => Math.round(h.tempC)), [data, today])
+  const now = useNow(30_000)
 
   // Apply animated background phase
   useEffect(() => {
@@ -66,6 +68,16 @@ export default function CityView(){
       <div className="flex items-center justify-between">
         <div className="text-sm text-green-400 h-5">{addedMsg}</div>
         <div className="flex items-center gap-2">
+          {data && (
+            <div className="text-xs text-white/60 mr-2">
+              Updated <span className="text-white/80">{formatRelativeTime(new Date(data.fetchedAt), now)}</span>
+            </div>
+          )}
+          <button
+            className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-sm disabled:opacity-60"
+            disabled={loading}
+            onClick={() => refresh()}
+          >{loading ? 'Refreshing…' : 'Refresh'}</button>
           <button
             className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-sm"
             onClick={() => {

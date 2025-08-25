@@ -19,18 +19,27 @@
 }
 
 .light{
-  --background: 0 0% 100%;
-  --foreground: 222 47% 6%;
-  --card: 0 0% 100%;
-  --card-foreground: 222 47% 6%;
-  --primary: 199 89% 48%;
+  /* Soft sky-tinted surfaces instead of pure white */
+  --background: 210 60% 98%;
+  /* Slate text for light mode */
+  --foreground: 222 28% 16%;
+  --card: 210 55% 99%;
+  --card-foreground: 222 30% 18%;
+  --primary: 199 90% 46%;
   --primary-foreground: 210 40% 98%;
-  --muted: 210 40% 96%;
-  --accent: 199 89% 40%;
+  --muted: 210 38% 97%;
+  --accent: 199 88% 42%;
+  /* Brighter gradient tokens for day feel */
+  --g1: rgba(56,189,248,0.28);
+  --g2: rgba(34,197,94,0.16);
+  --g3: rgba(147,197,253,0.22);
 }
 
 html, body, #root{ height:100%; }
 body{ font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+
+/* Light mode: clean sans-serif for higher legibility */
+.light body{ font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
 
 /* Animated weather background using phase variables */
 .bg-gradient-weather{
@@ -41,6 +50,21 @@ body{ font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, He
   background-size: 120% 120%;
   animation: bg-pan 18s ease-in-out infinite alternate;
 }
+
+/* Light mode contrast helpers */
+.light a { color: hsl(var(--primary)); }
+.light a:hover { color: hsl(var(--accent)); }
+
+/* Ensure white text utilities remain readable in light mode */
+.light .text-white { color: hsl(var(--foreground)) !important; }
+.light [class*="text-white/"] { color: hsl(var(--foreground) / 0.78) !important; }
+
+/* Subtle backgrounds for white-alpha utilities in light mode */
+.light .bg-white\/5 { background-color: hsl(var(--foreground) / 0.03) !important; }
+.light .bg-white\/10 { background-color: hsl(var(--foreground) / 0.06) !important; }
+.light .bg-white\/15 { background-color: hsl(var(--foreground) / 0.10) !important; }
+.light .hover\:bg-white\/15:hover { background-color: hsl(var(--foreground) / 0.10) !important; }
+.light .hover\:bg-white\/20:hover { background-color: hsl(var(--foreground) / 0.14) !important; }
 
 @keyframes bg-pan {
   0% { background-position: 0% 0%, 0% 0%, 0% 0%; }

@@ -15,6 +15,7 @@ import { Sparkline } from '../components/Sparkline'
 import { applyPhaseClass, applyWeatherClass, getDayPhase } from '../lib/dayPhase'
 import { aqiColor, aqiLabel } from '../lib/aqi'
 import { AlertsBanner } from '../components/AlertsBanner'
+import { useNow, formatRelativeTime } from '../lib/time'
 
 export default function LatLonView(){
   const { lat, lon } = useParams()
@@ -33,6 +34,7 @@ export default function LatLonView(){
   const [rgLoading, setRgLoading] = useState<boolean>(false)
   const [rev, setRev] = useState<GeoSuggest | null>(null)
   const [addedMsg, setAddedMsg] = useState<string>('')
+  const [version, setVersion] = useState(0)
 
   useEffect(() => {
     let alive = true
@@ -59,7 +61,7 @@ export default function LatLonView(){
     }
     run()
     return () => { alive = false }
-  }, [coords?.la, coords?.lo, settings.units])
+  }, [coords?.la, coords?.lo, settings.units, version])
 
   if (!coords) return <div className="p-6 rounded-2xl bg-card shadow-soft text-red-400">Invalid coordinates.</div>
 
@@ -83,6 +85,7 @@ export default function LatLonView(){
       default: return fc ? `Place (${fc})` : undefined
     }
   }, [rev?.feature_code])
+  const now = useNow(30_000)
 
   // Apply animated background phase
   useEffect(() => {
@@ -122,6 +125,16 @@ export default function LatLonView(){
       <div className="flex items-center justify-between">
         <div className="text-sm text-green-400 h-5">{addedMsg}</div>
         <div className="flex items-center gap-2">
+          {data && (
+            <div className="text-xs text-white/60 mr-2">
+              Updated <span className="text-white/80">{formatRelativeTime(new Date(data.fetchedAt), now)}</span>
+            </div>
+          )}
+          <button
+            className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-sm disabled:opacity-60"
+            disabled={loading}
+            onClick={() => setVersion(v => v + 1)}
+          >{loading ? 'Refreshing…' : 'Refresh'}</button>
           <button
             className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-sm"
             onClick={() => {

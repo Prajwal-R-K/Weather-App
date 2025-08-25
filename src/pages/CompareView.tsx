@@ -6,14 +6,16 @@ import { HourlyTempChart } from '../components/HourlyTempChart'
 import { ForecastTabs } from '../components/ForecastTabs'
 import { MiniMap } from '../components/MiniMap'
 import { exportElementPdf } from '../lib/exportPdf'
+import { useNow, formatRelativeTime } from '../lib/time'
 
 export default function CompareView(){
   const [sp, setSp] = useSearchParams()
   const [left, setLeft] = useState(sp.get('a') || 'Bengaluru')
   const [right, setRight] = useState(sp.get('b') || 'Mumbai')
-  const { data: leftData, loading: leftLoading, error: leftError } = useCityWeather(left)
-  const { data: rightData, loading: rightLoading, error: rightError } = useCityWeather(right)
+  const { data: leftData, loading: leftLoading, error: leftError, refresh: refreshLeft } = useCityWeather(left)
+  const { data: rightData, loading: rightLoading, error: rightError, refresh: refreshRight } = useCityWeather(right)
   const wrapRef = useRef<HTMLDivElement | null>(null)
+  const now = useNow(30_000)
 
   // Memoized key metrics
   const leftToday = leftData?.daily?.[0]?.date
@@ -82,7 +84,21 @@ export default function CompareView(){
           </div>
 
           <div className="rounded-2xl p-4 bg-card border border-white/5">
-            <div className="text-sm opacity-70 mb-2">City A</div>
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm opacity-70">City A</div>
+              <div className="flex items-center gap-2">
+                {leftData && (
+                  <div className="text-xs text-white/60">
+                    Updated <span className="text-white/80">{formatRelativeTime(new Date(leftData.fetchedAt), now)}</span>
+                  </div>
+                )}
+                <button
+                  className="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/15 text-xs disabled:opacity-60"
+                  disabled={leftLoading}
+                  onClick={() => refreshLeft()}
+                >{leftLoading ? 'Refreshing…' : 'Refresh'}</button>
+              </div>
+            </div>
             {leftLoading && <div className="text-white/60">Loading…</div>}
             {leftError && <div className="text-red-300">{leftError}</div>}
             {!leftLoading && !leftError && leftData && (
@@ -117,7 +133,21 @@ export default function CompareView(){
           </div>
 
           <div className="rounded-2xl p-4 bg-card border border-white/5">
-            <div className="text-sm opacity-70 mb-2">City B</div>
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm opacity-70">City B</div>
+              <div className="flex items-center gap-2">
+                {rightData && (
+                  <div className="text-xs text-white/60">
+                    Updated <span className="text-white/80">{formatRelativeTime(new Date(rightData.fetchedAt), now)}</span>
+                  </div>
+                )}
+                <button
+                  className="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/15 text-xs disabled:opacity-60"
+                  disabled={rightLoading}
+                  onClick={() => refreshRight()}
+                >{rightLoading ? 'Refreshing…' : 'Refresh'}</button>
+              </div>
+            </div>
             {rightLoading && <div className="text-white/60">Loading…</div>}
             {rightError && <div className="text-red-300">{rightError}</div>}
             {!rightLoading && !rightError && rightData && (

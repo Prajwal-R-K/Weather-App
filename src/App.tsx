@@ -136,14 +136,37 @@ export default function App(){
 
       <main className="relative z-10 max-w-6xl mx-auto px-4 py-6">
         <AnimatePresence mode="wait">
-          <motion.div key={location.pathname} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
+          {(() => {
+            const p = location.pathname
+            // Choose a nice animation per route group
+            const cfg = p === '/'
+              ? { initial: { opacity: 0, scale: 0.98 }, animate: { opacity: 1, scale: 1 }, exit: { opacity: 0, scale: 0.98 } }
+              : p.startsWith('/city/')
+              ? { initial: { opacity: 0, x: 24 }, animate: { opacity: 1, x: 0 }, exit: { opacity: 0, x: -16 } }
+              : p.startsWith('/lat/')
+              ? { initial: { opacity: 0, x: -24 }, animate: { opacity: 1, x: 0 }, exit: { opacity: 0, x: 16 } }
+              : p.startsWith('/compare')
+              ? { initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -8 } }
+              : { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -12 } }
+            const transition = { type: 'spring', stiffness: 240, damping: 24, mass: 0.9 }
+            return (
+              <motion.div
+                key={location.pathname}
+                initial={cfg.initial}
+                animate={cfg.animate}
+                exit={cfg.exit}
+                transition={transition}
+                className={settings.animations ? '' : 'no-anim'}
+              >
             <Routes location={location}>
               <Route path="/" element={<Home />} />
               <Route path="/city/:name" element={<CityView />} />
               <Route path="/lat/:lat/lon/:lon" element={<LatLonView />} />
               <Route path="/compare" element={<CompareView />} />
             </Routes>
-          </motion.div>
+              </motion.div>
+            )
+          })()}
         </AnimatePresence>
       </main>
       <footer className="max-w-6xl mx-auto px-4 py-8 text-sm text-white/60">
